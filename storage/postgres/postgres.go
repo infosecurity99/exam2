@@ -1,9 +1,9 @@
 package postgres
 
 import (
-	"city2city/config"
-	"city2city/storage"
 	"database/sql"
+	"exam2/config"
+	"exam2/storage"
 	"fmt"
 )
 

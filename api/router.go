@@ -1,7 +1,7 @@
 package api
 
 import (
-	"city2city/api/handler"
+	"exam2/api/handler"
 	"net/http"
 )
 

@@ -1,9 +1,9 @@
 package postgres
 
 import (
-	"city2city/api/models"
-	"city2city/storage"
 	"database/sql"
+	"exam2/api/models"
+	"exam2/storage"
 )
 
 type customerRepo struct {

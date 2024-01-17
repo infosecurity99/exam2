@@ -1,8 +1,6 @@
 package storage
 
-import (
-	"city2city/api/models"
-)
+import "exam2/api/models"
 
 type IStorage interface {
 	CloseDB()

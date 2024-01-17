@@ -1,10 +1,10 @@
 package main
 
 import (
-	"city2city/api"
-	"city2city/api/handler"
-	"city2city/config"
-	"city2city/storage/postgres"
+	"exam2/api"
+	"exam2/api/handler"
+	"exam2/config"
+	"exam2/storage/postgres"
 	"fmt"
 	"log"
 	"net/http"

@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"city2city/api/models"
-	"city2city/storage"
 	"encoding/json"
+	"exam2/api/models"
+	"exam2/storage"
 	"fmt"
 	"net/http"
 )
