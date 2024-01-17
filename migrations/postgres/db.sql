@@ -1,8 +1,9 @@
-create table cities (
-    id uuid primary key,
-    name text check (char_length(name) > 3 AND char_length(name) <= 30),
-    created_at timestamp default now()
+CREATE TABLE cities (
+    id UUID PRIMARY KEY,
+    name TEXT CHECK (LENGTH(name) > 3 AND LENGTH(name) <= 30),
+    created_at TIMESTAMP DEFAULT NOW()
 );
+
 
 create table customers (
     id uuid primary key,
@@ -27,7 +28,7 @@ create table cars (
     brand varchar(30),
     number varchar(30) unique,
     status boolean default true,
-    driver_id uuid references driver(id),
+    driver_id uuid references drivers(id),
     created_at timestamp default now()
 );
 

@@ -1,9 +1,9 @@
 package postgres
 
 import (
-	"exam2/storage"
 	"database/sql"
 	"exam2/api/models"
+	"exam2/storage"
 )
 
 type carRepo struct {

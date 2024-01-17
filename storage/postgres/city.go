@@ -4,6 +4,10 @@ import (
 	"database/sql"
 	"exam2/api/models"
 	"exam2/storage"
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type cityRepo struct {
@@ -16,9 +20,21 @@ func NewCityRepo(db *sql.DB) storage.ICityRepo {
 	}
 }
 
-func (c cityRepo) Create(car models.CreateCity) (string, error) {
+//  create city
+func (c cityRepo) Create(city models.CreateCity) (string, error) {
+	uid := uuid.New()
+	createat := time.Now()
 
-	return "", nil
+	if _, err := c.db.Exec(`insert into cities (id, name, created_at) values ($1, $2, $3)`,
+		uid,
+		city.Name,
+		createat,
+	); err != nil {
+		fmt.Println("error while inserting data", err.Error())
+		return "", err
+	}
+
+	return uid.String(), nil
 }
 
 func (c cityRepo) Get(id string) (models.City, error) {

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/json"
+	"exam2/api/models"
 	"net/http"
 )
 
@@ -22,9 +24,30 @@ func (h Handler) City(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//create  city
 func (h Handler) CreateCity(w http.ResponseWriter, r *http.Request) {
+	newCity := models.City{}
 
+	if err := json.NewDecoder(r.Body).Decode(&newCity); err != nil {
+		handleResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	cityID, err := h.storage.City().Create(models.CreateCity{})
+	if err != nil {
+		handleResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	createdCity, err := h.storage.City().Get(cityID)
+	if err != nil {
+		handleResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	handleResponse(w, http.StatusCreated, createdCity)
 }
+
+
 
 func (h Handler) GetCityByID(w http.ResponseWriter, r *http.Request) {
 
