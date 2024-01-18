@@ -22,6 +22,7 @@ func NewCityRepo(db *sql.DB) storage.ICityRepo {
 
 //  create city
 func (c cityRepo) Create(city models.CreateCity) (string, error) {
+
 	uid := uuid.New()
 	createat := time.Now()
 
@@ -58,8 +59,56 @@ func (c cityRepo) Get(id string) (models.City, error) {
 
 //getlistcity
 func (c cityRepo) GetList(req models.GetListRequest) (models.CitiesResponse, error) {
+	var (
+		cities            = []models.City{}
+		count             = 0
+		countQuery, query string
+		page              = req.Page
+		offset            = (page - 1) * req.Limit
+	)
 
-	return models.CitiesResponse{}, nil
+	countQuery = `
+		SELECT count(1) from cities  `
+
+	if err := c.db.QueryRow(countQuery).Scan(&count); err != nil {
+		fmt.Println("error while scanning count of cities", err.Error())
+		return models.CitiesResponse{}, err
+	}
+
+	query = `
+		SELECT id, name, created_at
+			FROM cities
+			   
+			    `
+
+	query += ` LIMIT $1 OFFSET $2`
+
+	rows, err := c.db.Query(query, req.Limit, offset)
+	if err != nil {
+		fmt.Println("error while query rows", err.Error())
+		return models.CitiesResponse{}, err
+	}
+
+	for rows.Next() {
+		city := models.City{}
+
+		if err = rows.Scan(
+			&city.ID,
+			&city.Name,
+			&city.CreatedAt,
+		); err != nil {
+			fmt.Println("error while scanning row", err.Error())
+			return models.CitiesResponse{}, err
+		}
+
+		cities = append(cities, city)
+	}
+
+	return models.CitiesResponse{
+		Cities: cities,
+		Count:  count,
+	}, nil
+
 }
 
 //updatecity

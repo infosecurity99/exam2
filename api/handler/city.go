@@ -7,6 +7,7 @@ import (
 	"exam2/check"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 func (h Handler) City(w http.ResponseWriter, r *http.Request) {
@@ -16,7 +17,7 @@ func (h Handler) City(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		values := r.URL.Query()
 		if _, ok := values["id"]; !ok {
-			h.GetCityList(w)
+			h.GetCityList(w, r)
 		} else {
 			h.GetCityByID(w, r)
 		}
@@ -59,6 +60,7 @@ func (h Handler) CreateCity(w http.ResponseWriter, r *http.Request) {
 
 	handleResponse(w, http.StatusCreated, createdCity)
 }
+
 //getcitybyid
 func (h Handler) GetCityByID(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
@@ -81,9 +83,40 @@ func (h Handler) GetCityByID(w http.ResponseWriter, r *http.Request) {
 	handleResponse(w, http.StatusOK, user)
 }
 
-func (h Handler) GetCityList(w http.ResponseWriter) {
+func (h Handler) GetCityList(w http.ResponseWriter, r *http.Request) {
+	var (
+		page, limit = 1, 10
+		err         error
+	)
+	values := r.URL.Query()
 
+	if len(values["page"]) > 0 {
+		page, err = strconv.Atoi(values["page"][0])
+		if err != nil {
+			page = 1
+		}
+	}
+
+	if len(values["limit"]) > 0 {
+		limit, err = strconv.Atoi(values["limit"][0])
+		if err != nil {
+			fmt.Println("limit", values["limit"])
+			limit = 10
+		}
+	}
+
+	resp, err := h.storage.City().GetList(models.GetListRequest{
+		Page:  page,
+		Limit: limit,
+	})
+	if err != nil {
+		handleResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	handleResponse(w, http.StatusOK, resp)
 }
+
 //update city
 func (h Handler) UpdateCity(w http.ResponseWriter, r *http.Request) {
 	updateCity := models.City{}
@@ -109,6 +142,7 @@ func (h Handler) UpdateCity(w http.ResponseWriter, r *http.Request) {
 
 	handleResponse(w, http.StatusOK, user)
 }
+
 //delete city
 func (h Handler) DeleteCity(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
