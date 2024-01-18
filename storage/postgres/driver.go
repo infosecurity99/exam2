@@ -66,7 +66,7 @@ func (d driverRepo) Get(id string) (models.Driver, error) {
 //getlist drivers
 func (d driverRepo) GetList(req models.GetListRequest) (models.DriversResponse, error) {
 	var (
-		drivers         = []models.Driver{}
+		drivers           = []models.Driver{}
 		count             = 0
 		countQuery, query string
 		page              = req.Page
@@ -82,8 +82,7 @@ func (d driverRepo) GetList(req models.GetListRequest) (models.DriversResponse, 
 	}
 
 	query = `
-		SELECT id, full_name,phone,email, created_at
-			FROM customers
+	select id, full_name, phone, from_city_id, to_city_id, created_at from drivers
 			   
 			    `
 
@@ -96,36 +95,55 @@ func (d driverRepo) GetList(req models.GetListRequest) (models.DriversResponse, 
 	}
 
 	for rows.Next() {
-		costumer := models.Customer{}
+		driver := models.Driver{}
 
 		if err = rows.Scan(
-			&costumer.ID,
-			&costumer.FullName,
-			&costumer.Phone,
-			&costumer.Email,
-			&costumer.CreatedAt,
+			&driver.ID,
+			&driver.FullName,
+			&driver.Phone,
+			&driver.FromCityID,
+			&driver.ToCityID,
+			&driver.CreatedAt,
 		); err != nil {
 			fmt.Println("error while scanning row", err.Error())
 			return models.DriversResponse{}, err
 		}
 
-		costumers = append(costumers, costumer)
+		drivers = append(drivers, driver)
 	}
 
 	return models.DriversResponse{
-		Customers: costumers,
-		Count:     count,
+		Drivers: drivers,
+		Count:   count,
 	}, nil
 }
 
 //update  drivers
 func (d driverRepo) Update(driver models.Driver) (string, error) {
+	query := `
+        UPDATE drivers
+        SET full_name = $1, phone = $2, from_city_id=$3, to_city_id=$4, created_at = $5
+        WHERE id = $6
+    `
 
-	return "", nil
+	_, err := d.DB.Exec(query, driver.FullName, driver.Phone, driver.FromCityID, driver.ToCityID, driver.CreatedAt, driver.ID)
+	if err != nil {
+		return "", fmt.Errorf("error while updating driver data: %v", err)
+	}
+
+	return driver.ID, nil
 }
 
 //delete drivers
 func (d driverRepo) Delete(id string) error {
+	query := `
+		delete from drivers
+			where id = $1
+`
+	if _, err := d.DB.Exec(query, models.PrimaryKey{ID: id}.ID); err != nil {
+		fmt.Println("error while deleting drivers by id", err.Error())
+		return err
+	}
 
 	return nil
 }
