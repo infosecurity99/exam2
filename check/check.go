@@ -2,6 +2,7 @@ package check
 
 import (
 	"errors"
+	"exam2/api/models"
 	"fmt"
 	"time"
 	"unicode"
@@ -28,4 +29,8 @@ func Year(year int) error {
 		return errors.New("year is not correct for car!")
 	}
 	return nil
+}
+
+func NameCity(name models.CreateCity) bool {
+	return len(name.Name) <= 3 && len(name.Name) > 30
 }

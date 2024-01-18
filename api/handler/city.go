@@ -2,7 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"exam2/api/models"
+	"exam2/check"
+	"fmt"
 	"net/http"
 )
 
@@ -26,41 +29,100 @@ func (h Handler) City(w http.ResponseWriter, r *http.Request) {
 
 //create  city
 func (h Handler) CreateCity(w http.ResponseWriter, r *http.Request) {
-	newCity := models.City{}
 
-	if err := json.NewDecoder(r.Body).Decode(&newCity); err != nil {
+	newsCity := models.CreateCity{}
+
+	if err := json.NewDecoder(r.Body).Decode(&newsCity); err != nil {
 		handleResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	cityID, err := h.storage.City().Create(models.CreateCity{})
+	cityID, err := h.storage.City().Create(newsCity)
+	if err != nil {
+		handleResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	fmt.Println("cityId", cityID)
+	//check  name lengtgth
+	if check.NameCity(models.CreateCity{}) {
+		fmt.Println("Invalid name length")
+		handleResponse(w, http.StatusBadRequest, "Invalid name length")
+		return
+	}
+
+	createdCity, err := h.storage.City().Get((models.PrimaryKey{}).ID)
+
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	createdCity, err := h.storage.City().Get(cityID)
-	if err != nil {
-		handleResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
 	handleResponse(w, http.StatusCreated, createdCity)
 }
-
-
-
+//getcitybyid
 func (h Handler) GetCityByID(w http.ResponseWriter, r *http.Request) {
+	values := r.URL.Query()
+	if len(values["id"]) <= 0 {
+		handleResponse(w, http.StatusBadRequest, errors.New("id is required"))
+		return
+	}
 
+	id := values["id"][0]
+	var err error
+
+	user, err := h.storage.City().Get(models.PrimaryKey{
+		ID: id,
+	}.ID)
+	if err != nil {
+		handleResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+	fmt.Println(user)
+	handleResponse(w, http.StatusOK, user)
 }
 
 func (h Handler) GetCityList(w http.ResponseWriter) {
 
 }
-
+//update city
 func (h Handler) UpdateCity(w http.ResponseWriter, r *http.Request) {
+	updateCity := models.City{}
 
+	if err := json.NewDecoder(r.Body).Decode(&updateCity); err != nil {
+		handleResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	pKey, err := h.storage.City().Update(updateCity)
+	if err != nil {
+		handleResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	user, err := h.storage.City().Get(models.PrimaryKey{
+		ID: pKey,
+	}.ID)
+	if err != nil {
+		handleResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	handleResponse(w, http.StatusOK, user)
 }
-
+//delete city
 func (h Handler) DeleteCity(w http.ResponseWriter, r *http.Request) {
+	values := r.URL.Query()
+	if len(values["id"]) <= 0 {
+		handleResponse(w, http.StatusBadRequest, errors.New("id is required"))
+		return
+	}
 
+	id := values["id"][0]
+
+	if err := h.storage.City().Delete(models.PrimaryKey{ID: id}.ID); err != nil {
+		handleResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	handleResponse(w, http.StatusOK, "data successfully deleted")
 }

@@ -37,21 +37,59 @@ func (c cityRepo) Create(city models.CreateCity) (string, error) {
 	return uid.String(), nil
 }
 
+//getbyidcity
 func (c cityRepo) Get(id string) (models.City, error) {
+	user := models.City{}
+
+	query := `
+		select id, name, created_at from cities
+`
+	if err := c.db.QueryRow(query).Scan(
+		&user.ID,
+		&user.Name,
+		&user.CreatedAt,
+	); err != nil {
+		fmt.Println("error while scanning user", err.Error())
+		return models.City{}, err
+	}
+
 	return models.City{}, nil
 }
 
+//getlistcity
 func (c cityRepo) GetList(req models.GetListRequest) (models.CitiesResponse, error) {
 
 	return models.CitiesResponse{}, nil
 }
 
-func (c cityRepo) Update(car models.City) (string, error) {
+//updatecity
+func (c cityRepo) Update(citykey models.City) (string, error) {
+	query := `
+        UPDATE cities 
+        SET name = $1, created_at = $2
+        WHERE id = $3
+    `
 
-	return "", nil
+	_, err := c.db.Exec(query, citykey.Name, citykey.CreatedAt, citykey.ID)
+	if err != nil {
+		fmt.Println("error while updating cities data:", err.Error())
+		return " ", err
+	}
+
+	return citykey.ID, nil
 }
 
+//delete   city
 func (c cityRepo) Delete(id string) error {
+	query := `
+		delete from cities
+			where id = $1
+`
+	if _, err := c.db.Exec(query, models.PrimaryKey{ID: id}.ID); err != nil {
+		fmt.Println("error while deleting cities by id", err.Error())
+		return err
+	}
 
 	return nil
+
 }
