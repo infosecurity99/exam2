@@ -72,7 +72,7 @@ func (h Handler) GetDriverByID(w http.ResponseWriter, r *http.Request) {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-
+	fmt.Println(drivers)
 	handleResponse(w, http.StatusOK, drivers)
 }
 

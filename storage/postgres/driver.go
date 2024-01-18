@@ -43,7 +43,7 @@ func (d driverRepo) Get(id string) (models.Driver, error) {
 	driver := models.Driver{}
 
 	query := `
-		SELECT id, full_name, phone, from_city_id, to_city_id, created_at FROM drivers WHERE id = $1
+		SELECT id, full_name, phone, from_city_id, to_city_id, created_at FROM drivers WHERE id = $1  
 	`
 
 	err := d.DB.QueryRow(query, id).Scan(

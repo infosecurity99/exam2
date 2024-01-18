@@ -43,15 +43,14 @@ func (h Handler) CreateCity(w http.ResponseWriter, r *http.Request) {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	fmt.Println("cityId", cityID)
-	//check  name lengtgth
+
 	if check.NameCity(models.CreateCity{}) {
 		fmt.Println("Invalid name length")
 		handleResponse(w, http.StatusBadRequest, "Invalid name length")
 		return
 	}
 
-	createdCity, err := h.storage.City().Get((models.PrimaryKey{}).ID)
+	createdCity, err := h.storage.City().Get((models.PrimaryKey{ID: cityID}).ID)
 
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
