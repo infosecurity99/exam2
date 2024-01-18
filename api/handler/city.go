@@ -30,11 +30,16 @@ func (h Handler) City(w http.ResponseWriter, r *http.Request) {
 
 //create  city
 func (h Handler) CreateCity(w http.ResponseWriter, r *http.Request) {
-
 	newsCity := models.CreateCity{}
 
 	if err := json.NewDecoder(r.Body).Decode(&newsCity); err != nil {
 		handleResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if check.NameCity(newsCity) {
+		fmt.Println("Invalid name length")
+		handleResponse(w, http.StatusBadRequest, "Invalid name length")
 		return
 	}
 
@@ -44,13 +49,9 @@ func (h Handler) CreateCity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if check.NameCity(models.CreateCity{}) {
-		fmt.Println("Invalid name length")
-		handleResponse(w, http.StatusBadRequest, "Invalid name length")
-		return
-	}
-
-	createdCity, err := h.storage.City().Get((models.PrimaryKey{ID: cityID}).ID)
+	createdCity, err := h.storage.City().Get(models.PrimaryKey{
+		ID: cityID,
+	})
 
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
@@ -73,12 +74,12 @@ func (h Handler) GetCityByID(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.storage.City().Get(models.PrimaryKey{
 		ID: id,
-	}.ID)
+	})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	fmt.Println(user)
+
 	handleResponse(w, http.StatusOK, user)
 }
 
@@ -133,7 +134,7 @@ func (h Handler) UpdateCity(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.storage.City().Get(models.PrimaryKey{
 		ID: pKey,
-	}.ID)
+	})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
@@ -152,7 +153,7 @@ func (h Handler) DeleteCity(w http.ResponseWriter, r *http.Request) {
 
 	id := values["id"][0]
 
-	if err := h.storage.City().Delete(models.PrimaryKey{ID: id}.ID); err != nil {
+	if err := h.storage.City().Delete(models.PrimaryKey{ID: id}); err != nil {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}

@@ -45,7 +45,7 @@ func (h Handler) CreateDriver(w http.ResponseWriter, r *http.Request) {
 
 	customer, err := h.storage.Driver().Get(models.PrimaryKey{
 		ID: pKey,
-	}.ID)
+	})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
@@ -67,7 +67,7 @@ func (h Handler) GetDriverByID(w http.ResponseWriter, r *http.Request) {
 
 	drivers, err := h.storage.Driver().Get(models.PrimaryKey{
 		ID: id,
-	}.ID)
+	})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
@@ -128,7 +128,7 @@ func (h Handler) UpdateDriver(w http.ResponseWriter, r *http.Request) {
 
 	customer, err := h.storage.City().Get(models.PrimaryKey{
 		ID: pKey,
-	}.ID)
+	})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
@@ -147,7 +147,7 @@ func (h Handler) DeleteDriver(w http.ResponseWriter, r *http.Request) {
 
 	id := values["id"][0]
 
-	if err := h.storage.Driver().Delete(models.PrimaryKey{ID: id}.ID); err != nil {
+	if err := h.storage.Driver().Delete(models.PrimaryKey{ID: id}); err != nil {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}

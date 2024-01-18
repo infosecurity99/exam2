@@ -11,30 +11,34 @@ type IStorage interface {
 	Trip() ITripRepo
 	TripCustomer() ITripCustomerRepo
 }
+
 //cities
 type ICityRepo interface {
 	Create(city models.CreateCity) (string, error)
-	Get(id string) (models.City, error)
+	Get(models.PrimaryKey) (models.City, error)
 	GetList(req models.GetListRequest) (models.CitiesResponse, error)
 	Update(city models.City) (string, error)
-	Delete(id string) error
+	Delete(models.PrimaryKey) error
 }
+
 //cistomers
 type ICustomerRepo interface {
 	Create(customer models.CreateCustomer) (string, error)
-	Get(id string) (models.Customer, error)
+	Get(models.PrimaryKey) (models.Customer, error)
 	GetList(req models.GetListRequest) (models.CustomersResponse, error)
 	Update(customer models.Customer) (string, error)
-	Delete(id string) error
+	Delete(models.PrimaryKey) error
 }
+
 //drivers
 type IDriverRepo interface {
 	Create(driver models.CreateDriver) (string, error)
-	Get(id string) (models.Driver, error)
+	Get(models.PrimaryKey) (models.Driver, error)
 	GetList(req models.GetListRequest) (models.DriversResponse, error)
 	Update(driver models.Driver) (string, error)
-	Delete(id string) error
+	Delete(models.PrimaryKey) error
 }
+
 //cars
 type ICarRepo interface {
 	Create(car models.CreateCar) (string, error)
@@ -45,6 +49,7 @@ type ICarRepo interface {
 	UpdateCarStatus(updateCarStatus models.UpdateCarStatus) error
 	UpdateCarRoute(updateCarRoute models.UpdateCarRoute) error
 }
+
 //trips
 type ITripRepo interface {
 	Create(trip models.CreateTrip) (string, error)
@@ -56,8 +61,8 @@ type ITripRepo interface {
 
 type ITripCustomerRepo interface {
 	Create(tripCustomer models.CreateTripCustomer) (string, error)
-	Get(id string) (models.TripCustomer, error)
+	Get(models.PrimaryKey) (models.TripCustomer, error)
 	GetList(req models.GetListRequest) (models.TripCustomersResponse, error)
 	Update(tripCustomer models.TripCustomer) (string, error)
-	Delete(id string) error
+	Delete(models.PrimaryKey) error
 }

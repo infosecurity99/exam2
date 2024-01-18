@@ -45,7 +45,7 @@ func (h Handler) CreateCustomer(w http.ResponseWriter, r *http.Request) {
 
 	customer, err := h.storage.Customer().Get(models.PrimaryKey{
 		ID: pKey,
-	}.ID)
+	})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
@@ -67,7 +67,7 @@ func (h Handler) GetCustomerByID(w http.ResponseWriter, r *http.Request) {
 
 	customers, err := h.storage.Customer().Get(models.PrimaryKey{
 		ID: id,
-	}.ID)
+	})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
@@ -128,7 +128,7 @@ func (h Handler) UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 
 	customer, err := h.storage.City().Get(models.PrimaryKey{
 		ID: pKey,
-	}.ID)
+	})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
@@ -146,7 +146,7 @@ func (h Handler) DeleteCustomer(w http.ResponseWriter, r *http.Request) {
 
 	id := values["id"][0]
 
-	if err := h.storage.Customer().Delete(models.PrimaryKey{ID: id}.ID); err != nil {
+	if err := h.storage.Customer().Delete(models.PrimaryKey{ID: id}); err != nil {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}

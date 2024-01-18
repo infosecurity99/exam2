@@ -39,14 +39,14 @@ func (d driverRepo) Create(driver models.CreateDriver) (string, error) {
 }
 
 //getbyid drivers
-func (d driverRepo) Get(id string) (models.Driver, error) {
+func (d driverRepo) Get(id models.PrimaryKey) (models.Driver, error) {
 	driver := models.Driver{}
 
 	query := `
 		SELECT id, full_name, phone, from_city_id, to_city_id, created_at FROM drivers WHERE id = $1  
 	`
 
-	err := d.DB.QueryRow(query, id).Scan(
+	err := d.DB.QueryRow(query, id.ID).Scan(
 		&driver.ID,
 		&driver.FullName,
 		&driver.Phone,
@@ -135,12 +135,12 @@ func (d driverRepo) Update(driver models.Driver) (string, error) {
 }
 
 //delete drivers
-func (d driverRepo) Delete(id string) error {
+func (d driverRepo) Delete(id models.PrimaryKey) error {
 	query := `
 		delete from drivers
 			where id = $1
 `
-	if _, err := d.DB.Exec(query, models.PrimaryKey{ID: id}.ID); err != nil {
+	if _, err := d.DB.Exec(query, id.ID); err != nil {
 		fmt.Println("error while deleting drivers by id", err.Error())
 		return err
 	}

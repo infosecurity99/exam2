@@ -26,7 +26,7 @@ func (c cityRepo) Create(city models.CreateCity) (string, error) {
 	uid := uuid.New()
 	createat := time.Now()
 
-	if _, err := c.db.Exec(`insert into cities (id, name, created_at) values ($1, $2, $3)`,
+	if _, err := c.db.Exec(`insert into cities values ($1, $2, $3)`,
 		uid,
 		city.Name,
 		createat,
@@ -39,13 +39,13 @@ func (c cityRepo) Create(city models.CreateCity) (string, error) {
 }
 
 //getbyidcity
-func (c cityRepo) Get(id string) (models.City, error) {
+func (c cityRepo) Get(pKey models.PrimaryKey) (models.City, error) {
 	user := models.City{}
 
 	query := `
-		select id, name, created_at from cities
+		select id, name, created_at from cities  where id=$1
 `
-	if err := c.db.QueryRow(query).Scan(
+	if err := c.db.QueryRow(query, pKey.ID).Scan(
 		&user.ID,
 		&user.Name,
 		&user.CreatedAt,
@@ -129,12 +129,12 @@ func (c cityRepo) Update(citykey models.City) (string, error) {
 }
 
 //delete   city
-func (c cityRepo) Delete(id string) error {
+func (c cityRepo) Delete(pKey models.PrimaryKey) error {
 	query := `
 		delete from cities
 			where id = $1
 `
-	if _, err := c.db.Exec(query, models.PrimaryKey{ID: id}.ID); err != nil {
+	if _, err := c.db.Exec(query, pKey.ID); err != nil {
 		fmt.Println("error while deleting cities by id", err.Error())
 		return err
 	}

@@ -20,7 +20,7 @@ func NewCustomerRepo(db *sql.DB) storage.ICustomerRepo {
 	}
 }
 
-//customer created
+//customer createdstring
 func (c customerRepo) Create(customer models.CreateCustomer) (string, error) {
 	uid := uuid.New()
 	createat := time.Now()
@@ -40,7 +40,7 @@ func (c customerRepo) Create(customer models.CreateCustomer) (string, error) {
 }
 
 //customergetbyid
-func (c customerRepo) Get(id string) (models.Customer, error) {
+func (c customerRepo) Get(id models.PrimaryKey) (models.Customer, error) {
 	customers := models.Customer{}
 
 	query := `
@@ -134,12 +134,12 @@ func (c customerRepo) Update(customerskey models.Customer) (string, error) {
 }
 
 //customerdelete
-func (c customerRepo) Delete(id string) error {
+func (c customerRepo) Delete(id models.PrimaryKey) error {
 	query := `
 		delete from customers
 			where id = $1
 `
-	if _, err := c.db.Exec(query, models.PrimaryKey{ID: id}.ID); err != nil {
+	if _, err := c.db.Exec(query, id.ID); err != nil {
 		fmt.Println("error while deleting customers by id", err.Error())
 		return err
 	}
