@@ -1,6 +1,6 @@
 CREATE TABLE cities (
     id UUID PRIMARY KEY,
-    name varchar(30)  ,
+    name TEXT CHECK (CHAR_LENGTH(name) > 3 AND CHAR_LENGTH(name) <= 30),
     created_at TIMESTAMP DEFAULT NOW()
 );
 

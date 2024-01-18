@@ -21,23 +21,23 @@ func (h Handler) Trip(w http.ResponseWriter, r *http.Request) {
 		h.DeleteTrip(w, r)
 	}
 }
-
+//create trip
 func (h Handler) CreateTrip(w http.ResponseWriter, r *http.Request) {
 
 }
-
+//getbyidtrip
 func (h Handler) GetTripByID(w http.ResponseWriter, r *http.Request) {
 
 }
-
+//getlist trip
 func (h Handler) GetTripList(w http.ResponseWriter) {
 
 }
-
+//updatetrip
 func (h Handler) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 
 }
-
+//deleate trip
 func (h Handler) DeleteTrip(w http.ResponseWriter, r *http.Request) {
 
 }
