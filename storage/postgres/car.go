@@ -27,7 +27,7 @@ func (c carRepo) Create(car models.CreateCar) (string, error) {
 	createAt := time.Now()
 
 	if _, err := c.db.Exec(`
-        INSERT INTO cars (id, model, brand, number,status,driver_id, created_at)
+        INSERT INTO cars (id, model, brand, number,driver_id, created_at)
         VALUES ($1, $2, $3, $4, $5, $6 )`,
 		uid,
 		car.Model,
@@ -247,7 +247,7 @@ func (c carRepo) UpdateCarStatus(updateCarStatus models.UpdateCarStatus) error {
 
 	_, err := c.db.Exec(query, updateCarStatus.Status, updateCarStatus.ID)
 	if err != nil {
-		fmt.Println("error while updating car status data:", err.Error())
+		log.Printf("Error while updating car status data: %v", err)
 		return err
 	}
 

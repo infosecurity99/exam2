@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"exam2/api/models"
+	"exam2/check"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -36,7 +37,10 @@ func (h Handler) CreateDriver(w http.ResponseWriter, r *http.Request) {
 		handleResponse(w, http.StatusBadRequest, err)
 		return
 	}
-
+	if !check.PhoneNumber(createDrivers.Phone) {
+		handleResponse(w, http.StatusBadRequest, nil)
+		return
+	}
 	pKey, err := h.storage.Driver().Create(createDrivers)
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)

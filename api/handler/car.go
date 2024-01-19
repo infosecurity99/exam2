@@ -5,6 +5,7 @@ import (
 	"errors"
 	"exam2/api/models"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -179,7 +180,6 @@ func (h Handler) UpdateCarRoute(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-
 // UpdateCarStatus updates the status of a car
 func (h Handler) UpdateCarStatus(w http.ResponseWriter, r *http.Request) {
 	var updateCarStatus models.UpdateCarStatus
@@ -190,8 +190,13 @@ func (h Handler) UpdateCarStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if updateCarStatus.ID == "" || (updateCarStatus.Status != true && updateCarStatus.Status != false) {
+		http.Error(w, "Invalid input data", http.StatusBadRequest)
+		return
+	}
 	err = h.storage.Car().UpdateCarStatus(updateCarStatus)
 	if err != nil {
+		log.Printf("Failed to update car status: %v", err)
 		http.Error(w, "Failed to update car status", http.StatusInternalServerError)
 		return
 	}

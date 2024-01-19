@@ -59,6 +59,7 @@ func (c *cityRepo) GetList(req models.GetListRequest) (models.CitiesResponse, er
 		countQuery, query string
 		page              = req.Page
 		offset            = (page - 1) * req.Limit
+		
 	)
 
 	countQuery = `

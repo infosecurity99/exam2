@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"exam2/api/models"
+	"exam2/check"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -36,13 +37,16 @@ func (h Handler) CreateCustomer(w http.ResponseWriter, r *http.Request) {
 		handleResponse(w, http.StatusBadRequest, err)
 		return
 	}
+	if !check.PhoneNumber(createCustomers.Phone) {
+		handleResponse(w, http.StatusBadRequest, nil)
+		return
+	}
 
 	pKey, err := h.storage.Customer().Create(createCustomers)
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-
 	customer, err := h.storage.Customer().Get(models.PrimaryKey{
 		ID: pKey,
 	})
@@ -136,6 +140,7 @@ func (h Handler) UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 
 	handleResponse(w, http.StatusOK, customer)
 }
+
 //delete customers
 func (h Handler) DeleteCustomer(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
