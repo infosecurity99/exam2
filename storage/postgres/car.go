@@ -220,12 +220,36 @@ func (c carRepo) Delete(i models.PrimaryKey) error {
 	return nil
 }
 
+// UpdateCarRoute updates the route information for a car
 func (c carRepo) UpdateCarRoute(updateCarRoute models.UpdateCarRoute) error {
+	query := `
+		update cars 
+		set departure_time = $1, from_city_id = $2, to_city_id = $3
+		where id = $4
+	`
+
+	_, err := c.db.Exec(query, updateCarRoute.DepartureTime, updateCarRoute.FromCityID, updateCarRoute.ToCityID, updateCarRoute.CarID)
+	if err != nil {
+		fmt.Println("error while updating car route data:", err.Error())
+		return err
+	}
 
 	return nil
 }
 
+// UpdateCarStatus updates the status of a car
 func (c carRepo) UpdateCarStatus(updateCarStatus models.UpdateCarStatus) error {
+	query := `
+		UPDATE cars 
+		SET status = $1
+		WHERE id = $2
+	`
+
+	_, err := c.db.Exec(query, updateCarStatus.Status, updateCarStatus.ID)
+	if err != nil {
+		fmt.Println("error while updating car status data:", err.Error())
+		return err
+	}
 
 	return nil
 }

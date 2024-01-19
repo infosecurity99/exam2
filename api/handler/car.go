@@ -162,10 +162,39 @@ func (h Handler) DeleteCar(w http.ResponseWriter, r *http.Request) {
 
 //updatecarroute
 func (h Handler) UpdateCarRoute(w http.ResponseWriter, r *http.Request) {
+	var updateCarRoute models.UpdateCarRoute
 
+	err := json.NewDecoder(r.Body).Decode(&updateCarRoute)
+	if err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	err = h.storage.Car().UpdateCarRoute(updateCarRoute)
+	if err != nil {
+		http.Error(w, "Failed to update car route", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
-//ipdate car status
-func (h Handler) UpdateCarStatus(w http.ResponseWriter, r *http.Request) {
 
+// UpdateCarStatus updates the status of a car
+func (h Handler) UpdateCarStatus(w http.ResponseWriter, r *http.Request) {
+	var updateCarStatus models.UpdateCarStatus
+
+	err := json.NewDecoder(r.Body).Decode(&updateCarStatus)
+	if err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	err = h.storage.Car().UpdateCarStatus(updateCarStatus)
+	if err != nil {
+		http.Error(w, "Failed to update car status", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

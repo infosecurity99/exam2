@@ -46,10 +46,15 @@ func (c *tripRepo) Create(req models.CreateTrip) (string, error) {
 //getbyidtrip
 func (c tripRepo) Get(id models.PrimaryKey) (models.Trip, error) {
 	trip := models.Trip{}
+	customer := models.Customer{}
 
 	query := `
-        SELECT id, trip_number_id, from_city_id, to_city_id, driver_id, price, created_at FROM trips
-        WHERE id = $1
+        SELECT 
+            t.id, t.trip_number_id, t.from_city_id, t.to_city_id, t.driver_id, t.price, t.created_at,
+            c.id AS customer_id, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone
+        FROM trips t
+        JOIN customers c ON t.customer_id = c.id
+        WHERE t.id = $1
     `
 
 	if err := c.db.QueryRow(query, id.ID).Scan(
@@ -60,12 +65,16 @@ func (c tripRepo) Get(id models.PrimaryKey) (models.Trip, error) {
 		&trip.DriverID,
 		&trip.Price,
 		&trip.CreatedAt,
+		&customer.ID,
+		&customer.FullName,
+		&customer.Email,
+		&customer.Phone,
 	); err != nil {
-		fmt.Println("error while scanning trip", err.Error())
+		fmt.Println("error while scanning trip and customer", err.Error())
 		return models.Trip{}, err
 	}
 
-	return trip, nil
+	return models.Trip{}, nil
 }
 
 //getlisttrip
