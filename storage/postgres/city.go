@@ -34,21 +34,21 @@ func (c *cityRepo) Create(city models.CreateCity) (string, error) {
 
 //getbyidcity
 func (c *cityRepo) Get(pKey models.PrimaryKey) (models.City, error) {
-	user := models.City{}
+	city := models.City{}
 
 	query := `
 		select id, name, created_at from cities  where id=$1
 `
 	if err := c.db.QueryRow(query, pKey.ID).Scan(
-		&user.ID,
-		&user.Name,
-		&user.CreatedAt,
+		&city.ID,
+		&city.Name,
+		&city.CreatedAt,
 	); err != nil {
 		fmt.Println("error while scanning user", err.Error())
 		return models.City{}, err
 	}
 
-	return models.City{}, nil
+	return city, nil
 }
 
 //getlistcity

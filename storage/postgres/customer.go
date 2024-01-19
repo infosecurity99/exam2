@@ -16,7 +16,7 @@ type customerRepo struct {
 
 func NewCustomerRepo(db *sql.DB) storage.ICustomerRepo {
 	return customerRepo{
-		db:db,
+		db: db,
 	}
 }
 
@@ -56,7 +56,7 @@ func (c customerRepo) Get(id models.PrimaryKey) (models.Customer, error) {
 		fmt.Println("error while scanning customers", err.Error())
 		return models.Customer{}, err
 	}
-	return models.Customer{}, nil
+	return customers, nil
 }
 
 //customergetlist

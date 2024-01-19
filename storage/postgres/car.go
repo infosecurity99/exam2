@@ -27,7 +27,7 @@ func (c carRepo) Create(car models.CreateCar) (string, error) {
 	createAt := time.Now()
 
 	if _, err := c.db.Exec(`
-        INSERT INTO cars (id, model, brand, number,driver_id, created_at)
+        INSERT INTO cars (id, model, brand, number,status,driver_id, created_at)
         VALUES ($1, $2, $3, $4, $5, $6 )`,
 		uid,
 		car.Model,
@@ -54,7 +54,7 @@ func (c carRepo) Get(pkey models.PrimaryKey) (models.Car, error) {
             cars.model,
             cars.brand,
             cars.number,
-         
+            cars.status,
             cars.driver_id,
             drivers_from.id AS driver_id,
             drivers_from.full_name AS driver_full_name,
@@ -71,7 +71,7 @@ func (c carRepo) Get(pkey models.PrimaryKey) (models.Car, error) {
 		&car.Model,
 		&car.Brand,
 		&car.Number,
-
+		&car.Status,
 		&car.DriverID,
 		&driverData.ID,
 		&driverData.FullName,
@@ -116,7 +116,7 @@ func (c carRepo) GetList(request models.GetListRequest) (models.CarsResponse, er
             cars.model,
             cars.brand,
             cars.number,
-      
+            cars.status,
             cars.driver_id,
             drivers.id AS driver_id,
             drivers.full_name AS driver_full_name,
@@ -159,7 +159,7 @@ func (c carRepo) GetList(request models.GetListRequest) (models.CarsResponse, er
 			&car.Model,
 			&car.Brand,
 			&car.Number,
-
+			&car.Status,
 			&car.DriverID,
 			&car.DriverData.ID,
 			&car.DriverData.FullName,

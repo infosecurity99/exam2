@@ -20,6 +20,7 @@ func NewTripCustomerRepo(db *sql.DB) storage.ITripCustomerRepo {
 	}
 }
 
+//create  insert
 func (c *tripCustomerRepo) Create(req models.CreateTripCustomer) (string, error) {
 	uid := uuid.New()
 	createdAt := time.Now()
@@ -38,12 +39,27 @@ func (c *tripCustomerRepo) Create(req models.CreateTripCustomer) (string, error)
 	return uid.String(), nil
 }
 
+//getbyid
 func (c *tripCustomerRepo) Get(id models.PrimaryKey) (models.TripCustomer, error) {
 	tripcustomer := models.TripCustomer{}
+	customer := models.Customer{} // Assuming you have a Customer struct
 
 	query := `
-        SELECT id, trip_id, customer_id, created_at FROM trip_customers
-        WHERE id = $1
+        SELECT
+            tc.id,
+            tc.trip_id,
+            tc.customer_id,
+            tc.created_at,
+            c.id AS customer_id,
+            c.full_name AS customer_name,
+            c.email AS customer_email,
+            c.phone AS customer_phone
+        FROM
+            trip_customers tc
+        JOIN
+            customers c ON tc.customer_id = c.id
+        WHERE
+            tc.id = $1
     `
 
 	if err := c.db.QueryRow(query, id.ID).Scan(
@@ -51,14 +67,21 @@ func (c *tripCustomerRepo) Get(id models.PrimaryKey) (models.TripCustomer, error
 		&tripcustomer.TripID,
 		&tripcustomer.CustomerID,
 		&tripcustomer.CreatedAt,
+		&customer.ID,
+		&customer.FullName,
+		&customer.Email,
+		&customer.Phone,
 	); err != nil {
 		fmt.Println("error while scanning trip", err.Error())
 		return models.TripCustomer{}, err
 	}
 
-	return models.TripCustomer{}, nil
+	tripcustomer.CustomerData = customer
+
+	return tripcustomer, nil
 }
 
+//get list trip customers
 func (c *tripCustomerRepo) GetList(req models.GetListRequest) (models.TripCustomersResponse, error) {
 	var (
 		tripsCustomers    = []models.TripCustomer{}
@@ -69,39 +92,57 @@ func (c *tripCustomerRepo) GetList(req models.GetListRequest) (models.TripCustom
 	)
 
 	countQuery = `
-		SELECT count(1) from trip_customers  `
+        SELECT count(1) FROM trip_customers  
+    `
 
 	if err := c.db.QueryRow(countQuery).Scan(&count); err != nil {
-		fmt.Println("error while scanning count of tripscustomers", err.Error())
+		fmt.Println("error while scanning count of trip customers", err.Error())
 		return models.TripCustomersResponse{}, err
 	}
 
 	query = `
-		SELECT id, trip_id, customer_id, created_at
-			FROM trip_customers
-			   
-			    `
-
-	query += ` LIMIT $1 OFFSET $2`
+        SELECT
+            tc.id,
+            tc.trip_id,
+            tc.customer_id,
+            tc.created_at,
+            c.id AS customer_id,
+            c.full_name AS customer_name,
+            c.email AS customer_email,
+            c.phone AS customer_phone
+        FROM
+            trip_customers tc
+        JOIN
+            customers c ON tc.customer_id = c.id
+        LIMIT $1 OFFSET $2
+    `
 
 	rows, err := c.db.Query(query, req.Limit, offset)
 	if err != nil {
-		fmt.Println("error while query rows", err.Error())
+		fmt.Println("error while querying rows", err.Error())
 		return models.TripCustomersResponse{}, err
 	}
 
 	for rows.Next() {
 		tripcustomer := models.TripCustomer{}
+		customer := models.Customer{}
 
 		if err = rows.Scan(
 			&tripcustomer.ID,
 			&tripcustomer.TripID,
 			&tripcustomer.CustomerID,
 			&tripcustomer.CreatedAt,
+			&customer.ID,
+			&customer.FullName,
+			&customer.Email,
+			&customer.Phone,
 		); err != nil {
 			fmt.Println("error while scanning row", err.Error())
 			return models.TripCustomersResponse{}, err
 		}
+
+		// Assuming you have a Customer field in your TripCustomer struct
+		tripcustomer.CustomerData = customer
 
 		tripsCustomers = append(tripsCustomers, tripcustomer)
 	}
@@ -110,7 +151,6 @@ func (c *tripCustomerRepo) GetList(req models.GetListRequest) (models.TripCustom
 		TripCustomers: tripsCustomers,
 		Count:         count,
 	}, nil
-
 }
 
 func (c *tripCustomerRepo) Update(req models.TripCustomer) (string, error) {
@@ -122,7 +162,7 @@ func (c *tripCustomerRepo) Delete(id models.PrimaryKey) error {
 	delete from trip_customers
 	WHERE id = $1
 `
-	if _, err := c.db.Exec(query,id.ID); err != nil {
+	if _, err := c.db.Exec(query, id.ID); err != nil {
 		fmt.Println("error while deleting trip_customers by id", err.Error())
 		return err
 	}

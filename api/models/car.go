@@ -7,6 +7,7 @@ type Car struct {
 	Model      string `json:"model"`
 	Brand      string `json:"brand"`
 	Number     int    `json:"number"`
+	Status    bool   `json:"status"`
 	DriverID   string `json:"driver_id"`
 	DriverData Driver `json:"driver_data"`
 	CreatedAt  string `json:"created_at"`
