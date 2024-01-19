@@ -48,11 +48,9 @@ func (h Handler) CreateCity(w http.ResponseWriter, r *http.Request) {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	fmt.Printf("Received data: %+v\n", cityID) 
 
-	createdCity, err := h.storage.City().Get(models.PrimaryKey{
-		ID: cityID,
-	})
-
+	createdCity, err := h.storage.City().Get(models.PrimaryKey{ID: cityID})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
 		return

@@ -162,10 +162,32 @@ func (h Handler) DeleteCar(w http.ResponseWriter, r *http.Request) {
 
 //updatecarroute
 func (h Handler) UpdateCarRoute(w http.ResponseWriter, r *http.Request) {
+	var updateCarRoute models.UpdateCarRoute
 
+	if err := json.NewDecoder(r.Body).Decode(&updateCarRoute); err != nil {
+		handleResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.storage.Car().UpdateCarRoute(updateCarRoute); err != nil {
+		handleResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	handleResponse(w, http.StatusOK, "Car route updated successfully")
 }
 
 //ipdate car status
 func (h Handler) UpdateCarStatus(w http.ResponseWriter, r *http.Request) {
-
+	var updateCarStatus models.UpdateCarStatus
+	if err := json.NewDecoder(r.Body).Decode(&updateCarStatus); err != nil {
+		handleResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	if err := h.storage.Car().UpdateCarStatus(updateCarStatus); err != nil {
+		handleResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	handleResponse(w, http.StatusOK, "Car status updated successfully")
 }
+

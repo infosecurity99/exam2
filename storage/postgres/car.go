@@ -26,13 +26,14 @@ func (c carRepo) Create(car models.CreateCar) (string, error) {
 	createAt := time.Now()
 
 	if _, err := c.db.Exec(`
-        INSERT INTO cars (id, model, brand, number, status, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6)`,
+        INSERT INTO cars (id, model, brand, number, status,driver_id, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6 , $7)`,
 		uid,
 		car.Model,
 		car.Brand,
 		car.Number,
-		true,
+		car.Status,
+		car.DriverID,
 		createAt,
 	); err != nil {
 		fmt.Println("error while inserting data", err.Error())
@@ -66,6 +67,7 @@ func (c carRepo) Get(id string) (models.Car, error) {
 }
 
 //getlistcar
+// getlistcar with driver data
 func (c carRepo) GetList(req models.GetListRequest) (models.CarsResponse, error) {
 	var (
 		cars              = []models.Car{}
@@ -84,9 +86,10 @@ func (c carRepo) GetList(req models.GetListRequest) (models.CarsResponse, error)
 	}
 
 	query = `
-		SELECT id, model, brand, number, created_at
-			FROM cars
-			    `
+		SELECT c.id, c.model, c.brand, c.number, c.created_at, d.full_name as driver_name, d.phone as driver_phone
+			FROM cars c
+			JOIN drivers d ON c.driver_id = d.id
+    `
 
 	query += ` LIMIT $1 OFFSET $2`
 
@@ -98,6 +101,7 @@ func (c carRepo) GetList(req models.GetListRequest) (models.CarsResponse, error)
 
 	for rows.Next() {
 		car := models.Car{}
+		driverName, driverPhone := "", ""
 
 		if err = rows.Scan(
 			&car.ID,
@@ -105,6 +109,8 @@ func (c carRepo) GetList(req models.GetListRequest) (models.CarsResponse, error)
 			&car.Brand,
 			&car.Number,
 			&car.CreatedAt,
+			&driverName,
+			&driverPhone,
 		); err != nil {
 			fmt.Println("error while scanning row", err.Error())
 			return models.CarsResponse{}, err
@@ -117,7 +123,6 @@ func (c carRepo) GetList(req models.GetListRequest) (models.CarsResponse, error)
 		Cars:  cars,
 		Count: count,
 	}, nil
-
 }
 
 //updatecar
@@ -151,11 +156,34 @@ func (c carRepo) Delete(id string) error {
 	return nil
 }
 
-func (c carRepo) UpdateCarRoute(models.UpdateCarRoute) error {
+func (c carRepo) UpdateCarRoute(updateCarRoute models.UpdateCarRoute) error {
+	query := `
+        UPDATE cars 
+        SET from_city = $1, to_city = $2
+        WHERE id = $3
+    `
+
+	_, err := c.db.Exec(query, updateCarRoute.FromCityID, updateCarRoute.ToCityID, updateCarRoute.CarID)
+	if err != nil {
+		fmt.Println("error while updating car route:", err.Error())
+		return err
+	}
 
 	return nil
 }
+
 func (c carRepo) UpdateCarStatus(updateCarStatus models.UpdateCarStatus) error {
+	query := `
+        UPDATE cars 
+        SET status = $1
+        WHERE id = $2
+    `
+
+	_, err := c.db.Exec(query, updateCarStatus.Status, updateCarStatus.ID)
+	if err != nil {
+		fmt.Println("error while updating car status:", err.Error())
+		return err
+	}
 
 	return nil
 }
