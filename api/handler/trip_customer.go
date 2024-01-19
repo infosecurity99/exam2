@@ -112,6 +112,28 @@ func (h Handler) GetTripCustomerList(w http.ResponseWriter, r *http.Request) {
 // update trip customers
 func (h Handler) UpdateTripCustomer(w http.ResponseWriter, r *http.Request) {
 
+	updateTripCustomers := models.TripCustomer{}
+
+	if err := json.NewDecoder(r.Body).Decode(&updateTripCustomers); err != nil {
+		handleResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	pKey, err := h.storage.TripCustomer().Update(updateTripCustomers)
+	if err != nil {
+		handleResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	tripcostumer, err := h.storage.TripCustomer().Get(models.PrimaryKey{
+		ID: pKey,
+	})
+	if err != nil {
+		handleResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+	fmt.Println(tripcostumer)
+	handleResponse(w, http.StatusOK, tripcostumer)
 }
 
 //delere   trip customers

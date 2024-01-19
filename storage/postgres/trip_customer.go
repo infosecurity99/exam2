@@ -154,7 +154,22 @@ func (c *tripCustomerRepo) GetList(req models.GetListRequest) (models.TripCustom
 }
 
 func (c *tripCustomerRepo) Update(req models.TripCustomer) (string, error) {
-	return "", nil
+	query := `
+        UPDATE trip_customers 
+        SET
+            trip_id = $1,
+            customer_id = $2
+
+        WHERE id = $3
+    `
+
+	_, err := c.db.Exec(query, req.TripID, req.CustomerID, req.ID)
+	if err != nil {
+		fmt.Println("error while updating trip customer data:", err.Error())
+		return "", err
+	}
+
+	return req.ID, nil
 }
 
 func (c *tripCustomerRepo) Delete(id models.PrimaryKey) error {
