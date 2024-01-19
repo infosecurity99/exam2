@@ -43,7 +43,7 @@ func (h Handler) CreateTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdTrip, err := h.storage.Trip().Get((models.PrimaryKey{ID: tripID}).ID)
+	createdTrip, err := h.storage.Trip().Get(models.PrimaryKey{ID: tripID})
 
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
@@ -66,7 +66,7 @@ func (h Handler) GetTripByID(w http.ResponseWriter, r *http.Request) {
 
 	trip, err := h.storage.Trip().Get(models.PrimaryKey{
 		ID: id,
-	}.ID)
+	})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
@@ -127,7 +127,7 @@ func (h Handler) UpdateTrip(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.storage.Trip().Get(models.PrimaryKey{
 		ID: pKey,
-	}.ID)
+	})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
@@ -146,7 +146,7 @@ func (h Handler) DeleteTrip(w http.ResponseWriter, r *http.Request) {
 
 	id := values["id"][0]
 
-	if err := h.storage.Trip().Delete(models.PrimaryKey{ID: id}.ID); err != nil {
+	if err := h.storage.Trip().Delete(models.PrimaryKey{ID: id}); err != nil {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}

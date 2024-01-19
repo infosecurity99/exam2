@@ -49,7 +49,7 @@ func (h Handler) CreateCar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdCar, err := h.storage.Car().Get((models.PrimaryKey{ID: carId}).ID)
+	createdCar, err := h.storage.Car().Get(models.PrimaryKey{ID: carId})
 	fmt.Println(createdCar)
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
@@ -72,7 +72,7 @@ func (h Handler) GetCarByID(w http.ResponseWriter, r *http.Request) {
 
 	car, err := h.storage.Car().Get(models.PrimaryKey{
 		ID: id,
-	}.ID)
+	})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
@@ -133,7 +133,7 @@ func (h Handler) UpdateCar(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.storage.Car().Get(models.PrimaryKey{
 		ID: pKey,
-	}.ID)
+	})
 	if err != nil {
 		handleResponse(w, http.StatusInternalServerError, err)
 		return
@@ -152,7 +152,7 @@ func (h Handler) DeleteCar(w http.ResponseWriter, r *http.Request) {
 
 	id := values["id"][0]
 
-	if err := h.storage.Car().Delete(models.PrimaryKey{ID: id}.ID); err != nil {
+	if err := h.storage.Car().Delete(models.PrimaryKey{ID: id}); err != nil {
 		handleResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -162,32 +162,10 @@ func (h Handler) DeleteCar(w http.ResponseWriter, r *http.Request) {
 
 //updatecarroute
 func (h Handler) UpdateCarRoute(w http.ResponseWriter, r *http.Request) {
-	var updateCarRoute models.UpdateCarRoute
 
-	if err := json.NewDecoder(r.Body).Decode(&updateCarRoute); err != nil {
-		handleResponse(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if err := h.storage.Car().UpdateCarRoute(updateCarRoute); err != nil {
-		handleResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	handleResponse(w, http.StatusOK, "Car route updated successfully")
 }
 
 //ipdate car status
 func (h Handler) UpdateCarStatus(w http.ResponseWriter, r *http.Request) {
-	var updateCarStatus models.UpdateCarStatus
-	if err := json.NewDecoder(r.Body).Decode(&updateCarStatus); err != nil {
-		handleResponse(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	if err := h.storage.Car().UpdateCarStatus(updateCarStatus); err != nil {
-		handleResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	handleResponse(w, http.StatusOK, "Car status updated successfully")
-}
 
+}

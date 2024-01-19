@@ -5,6 +5,7 @@ import (
 	"exam2/api/models"
 	"exam2/storage"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,7 +17,7 @@ type carRepo struct {
 
 func NewCarRepo(db *sql.DB) storage.ICarRepo {
 	return carRepo{
-		db,
+		db: db,
 	}
 }
 
@@ -26,13 +27,12 @@ func (c carRepo) Create(car models.CreateCar) (string, error) {
 	createAt := time.Now()
 
 	if _, err := c.db.Exec(`
-        INSERT INTO cars (id, model, brand, number, status,driver_id, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6 , $7)`,
+        INSERT INTO cars (id, model, brand, number,driver_id, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6 )`,
 		uid,
 		car.Model,
 		car.Brand,
 		car.Number,
-		car.Status,
 		car.DriverID,
 		createAt,
 	); err != nil {
@@ -44,75 +44,139 @@ func (c carRepo) Create(car models.CreateCar) (string, error) {
 }
 
 //getbyidcar
-func (c carRepo) Get(id string) (models.Car, error) {
+func (c carRepo) Get(pkey models.PrimaryKey) (models.Car, error) {
 	car := models.Car{}
+	var driverData models.Driver
 
-	query := `
-		SELECT id, model, brand, number, created_at FROM cars WHERE id = $1
-	`
-
-	if err := c.db.QueryRow(query, id).Scan(
+	err := c.db.QueryRow(`
+        SELECT
+            cars.id,
+            cars.model,
+            cars.brand,
+            cars.number,
+         
+            cars.driver_id,
+            drivers_from.id AS driver_id,
+            drivers_from.full_name AS driver_full_name,
+            drivers_from.phone AS driver_phone,
+            cars.created_at
+        FROM
+            cars
+        LEFT JOIN 
+            drivers AS drivers_from ON cars.driver_id = drivers_from.id
+        WHERE 
+            cars.id = $1
+    `, pkey.ID).Scan(
 		&car.ID,
 		&car.Model,
 		&car.Brand,
 		&car.Number,
 
+		&car.DriverID,
+		&driverData.ID,
+		&driverData.FullName,
+		&driverData.Phone,
 		&car.CreatedAt,
-	); err != nil {
-		fmt.Println("error while scanning car", err.Error())
+	)
+
+	if err != nil {
+		log.Printf("Error while retrieving car data. Error: %s\n", err.Error())
 		return models.Car{}, err
 	}
 
+	car.DriverData = driverData
 	return car, nil
 }
 
-//getlistcar
 // getlistcar with driver data
-func (c carRepo) GetList(req models.GetListRequest) (models.CarsResponse, error) {
+func (c carRepo) GetList(request models.GetListRequest) (models.CarsResponse, error) {
 	var (
-		cars              = []models.Car{}
-		count             = 0
-		countQuery, query string
-		page              = req.Page
-		offset            = (page - 1) * req.Limit
+		cars  = []models.Car{}
+		count = 0
+		query string
 	)
 
-	countQuery = `
-		SELECT count(1) from cars `
+	countQuery := `
+        select count(1) from cars `
 
 	if err := c.db.QueryRow(countQuery).Scan(&count); err != nil {
-		fmt.Println("error while scanning count of cars", err.Error())
+		fmt.Println("error while scanning count of customers", err.Error())
 		return models.CarsResponse{}, err
+	}
+
+	var offset int
+	offset = (request.Page - 1) * request.Limit
+	if offset < 0 {
+		offset = 0
 	}
 
 	query = `
-		SELECT c.id, c.model, c.brand, c.number, c.created_at, d.full_name as driver_name, d.phone as driver_phone
-			FROM cars c
-			JOIN drivers d ON c.driver_id = d.id
-    `
+        SELECT
+            cars.id,
+            cars.model,
+            cars.brand,
+            cars.number,
+      
+            cars.driver_id,
+            drivers.id AS driver_id,
+            drivers.full_name AS driver_full_name,
+            drivers.phone AS driver_phone,
+            drivers.from_city_id AS from_city_id,
+            drivers.to_city_id AS to_city_id,
+            from_city.id AS from_city_id,
+            from_city.name AS from_city_name,
+            from_city.created_at AS from_city_created_at,
+			drivers.created_at AS created_at,
+            to_city.id AS to_city_id,
+            to_city.name AS to_city_name,
+            to_city.created_at AS to_city_created_at,
+			drivers.created_at AS created_at,
+            cars.created_at
+        FROM
+            cars
+        LEFT JOIN 
+            drivers ON cars.driver_id = drivers.id
+        LEFT JOIN
+            cities AS from_city ON drivers.from_city_id = from_city.id
+        LEFT JOIN
+            cities AS to_city ON drivers.to_city_id = to_city.id
+        `
 
 	query += ` LIMIT $1 OFFSET $2`
 
-	rows, err := c.db.Query(query, req.Limit, offset)
+	rows, err := c.db.Query(query, request.Limit, offset)
 	if err != nil {
-		fmt.Println("error while query rows", err.Error())
+		log.Printf("Error while querying rows. Error: %s\n", err.Error())
 		return models.CarsResponse{}, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
-		car := models.Car{}
-		driverName, driverPhone := "", ""
+		var car models.Car
 
 		if err = rows.Scan(
 			&car.ID,
 			&car.Model,
 			&car.Brand,
 			&car.Number,
+
+			&car.DriverID,
+			&car.DriverData.ID,
+			&car.DriverData.FullName,
+			&car.DriverData.Phone,
+			&car.DriverData.FromCityID,
+			&car.DriverData.ToCityID,
+			&car.DriverData.FromCityData.ID,
+			&car.DriverData.FromCityData.Name,
+			&car.DriverData.FromCityData.CreatedAt,
+			&car.DriverData.CreatedAt,
+			&car.DriverData.ToCityData.ID,
+			&car.DriverData.ToCityData.Name,
+			&car.DriverData.ToCityData.CreatedAt,
+			&car.DriverData.CreatedAt,
 			&car.CreatedAt,
-			&driverName,
-			&driverPhone,
 		); err != nil {
-			fmt.Println("error while scanning row", err.Error())
+			log.Println("Error while scanning row:", err)
 			return models.CarsResponse{}, err
 		}
 
@@ -143,12 +207,12 @@ func (c carRepo) Update(car models.Car) (string, error) {
 }
 
 //delete car
-func (c carRepo) Delete(id string) error {
+func (c carRepo) Delete(i models.PrimaryKey) error {
 	query := `
 	delete from cars
 		where id = $1
 `
-	if _, err := c.db.Exec(query, models.PrimaryKey{ID: id}.ID); err != nil {
+	if _, err := c.db.Exec(query, i.ID); err != nil {
 		fmt.Println("error while deleting cars by id", err.Error())
 		return err
 	}
@@ -157,33 +221,11 @@ func (c carRepo) Delete(id string) error {
 }
 
 func (c carRepo) UpdateCarRoute(updateCarRoute models.UpdateCarRoute) error {
-	query := `
-        UPDATE cars 
-        SET from_city = $1, to_city = $2
-        WHERE id = $3
-    `
-
-	_, err := c.db.Exec(query, updateCarRoute.FromCityID, updateCarRoute.ToCityID, updateCarRoute.CarID)
-	if err != nil {
-		fmt.Println("error while updating car route:", err.Error())
-		return err
-	}
 
 	return nil
 }
 
 func (c carRepo) UpdateCarStatus(updateCarStatus models.UpdateCarStatus) error {
-	query := `
-        UPDATE cars 
-        SET status = $1
-        WHERE id = $2
-    `
-
-	_, err := c.db.Exec(query, updateCarStatus.Status, updateCarStatus.ID)
-	if err != nil {
-		fmt.Println("error while updating car status:", err.Error())
-		return err
-	}
 
 	return nil
 }

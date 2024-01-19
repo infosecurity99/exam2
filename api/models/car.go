@@ -16,7 +16,6 @@ type CreateCar struct {
 	Model    string `json:"model"`
 	Brand    string `json:"brand"`
 	Number   int    `json:"number"`
-	Status   bool   `json:"status"`
 	DriverID string `json:"driver_id"`
 }
 

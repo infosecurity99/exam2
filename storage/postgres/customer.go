@@ -16,7 +16,7 @@ type customerRepo struct {
 
 func NewCustomerRepo(db *sql.DB) storage.ICustomerRepo {
 	return customerRepo{
-		db,
+		db:db,
 	}
 }
 

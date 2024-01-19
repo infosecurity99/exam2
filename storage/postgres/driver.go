@@ -5,6 +5,7 @@ import (
 	"exam2/api/models"
 	"exam2/storage"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -39,24 +40,45 @@ func (d driverRepo) Create(driver models.CreateDriver) (string, error) {
 }
 
 //getbyid drivers
-func (d driverRepo) Get(id models.PrimaryKey) (models.Driver, error) {
+func (d driverRepo) Get(pkey models.PrimaryKey) (models.Driver, error) {
 	driver := models.Driver{}
-
-	query := `
-		SELECT id, full_name, phone, from_city_id, to_city_id, created_at FROM drivers WHERE id = $1  
-	`
-
-	err := d.DB.QueryRow(query, id.ID).Scan(
+	if err := d.DB.QueryRow(`
+        SELECT
+            drivers.id,
+            drivers.full_name,
+            drivers.phone,
+			drivers.from_city_id,
+			cities_from.id AS from_city_data_id,
+            cities_from.name AS from_city_data_name,
+			cities_from.created_at AS from_city_data_created_at,
+			drivers.to_city_id ,
+			cities_to.id AS to_city_data_id,
+            cities_to.name AS to_city_data_name,
+			cities_to.created_at AS to_city_data_created_at,
+			drivers.created_at
+        FROM
+            drivers
+        LEFT JOIN
+            cities AS cities_from ON drivers.from_city_id = cities_from.id
+        LEFT JOIN
+            cities AS cities_to ON drivers.to_city_id = cities_to.id
+        WHERE
+            drivers.id = $1
+    `, pkey.ID).Scan(
 		&driver.ID,
 		&driver.FullName,
 		&driver.Phone,
 		&driver.FromCityID,
+		&driver.FromCityData.ID,
+		&driver.FromCityData.Name,
+		&driver.FromCityData.CreatedAt,
 		&driver.ToCityID,
+		&driver.ToCityData.ID,
+		&driver.ToCityData.Name,
+		&driver.ToCityData.CreatedAt,
 		&driver.CreatedAt,
-	)
-
-	if err != nil {
-		fmt.Println("error while scanning driver", err.Error())
+	); err != nil {
+		log.Println("error while querying driver by ID", err.Error())
 		return models.Driver{}, err
 	}
 
@@ -64,17 +86,18 @@ func (d driverRepo) Get(id models.PrimaryKey) (models.Driver, error) {
 }
 
 //getlist drivers
-func (d driverRepo) GetList(req models.GetListRequest) (models.DriversResponse, error) {
+func (d driverRepo) GetList(request models.GetListRequest) (models.DriversResponse, error) {
 	var (
-		drivers           = []models.Driver{}
-		count             = 0
-		countQuery, query string
-		page              = req.Page
-		offset            = (page - 1) * req.Limit
+		drivers = []models.Driver{}
+		count   = 0
+		query   string
 	)
 
-	countQuery = `
-		SELECT count(1) from drivers  `
+	countQuery := `
+		SELECT count(1) FROM drivers
+	`
+
+	
 
 	if err := d.DB.QueryRow(countQuery).Scan(&count); err != nil {
 		fmt.Println("error while scanning count of drivers", err.Error())
@@ -82,33 +105,57 @@ func (d driverRepo) GetList(req models.GetListRequest) (models.DriversResponse, 
 	}
 
 	query = `
-	select id, full_name, phone, from_city_id, to_city_id, created_at from drivers
-			   
-			    `
+		SELECT
+			drivers.id,
+			drivers.full_name,
+			drivers.phone,
+			drivers.from_city_id,
+			cities_from.id AS from_city_data_id,
+			cities_from.name AS from_city_data_name,
+			cities_from.created_at AS from_city_data_created_at,
+			drivers.to_city_id ,
+			cities_to.id AS to_city_data_id,
+			cities_to.name AS to_city_data_name,
+			cities_to.created_at AS to_city_data_created_at,
+			drivers.created_at
+		FROM
+			drivers
+		LEFT JOIN
+			cities AS cities_from ON drivers.from_city_id = cities_from.id
+		LEFT JOIN
+			cities AS cities_to ON drivers.to_city_id = cities_to.id
+	`
 
+	
 	query += ` LIMIT $1 OFFSET $2`
 
-	rows, err := d.DB.Query(query, req.Limit, offset)
+	rows, err := d.DB.Query(query, request.Limit, (request.Page-1)*request.Limit)
 	if err != nil {
-		fmt.Println("error while query rows", err.Error())
+		fmt.Println("error while querying rows", err.Error())
 		return models.DriversResponse{}, err
 	}
 
 	for rows.Next() {
-		driver := models.Driver{}
-
+		var driver models.Driver
+	
 		if err = rows.Scan(
 			&driver.ID,
 			&driver.FullName,
 			&driver.Phone,
 			&driver.FromCityID,
+			&driver.FromCityData.ID,
+			&driver.FromCityData.Name,
+			&driver.FromCityData.CreatedAt,
 			&driver.ToCityID,
+			&driver.ToCityData.ID,
+			&driver.ToCityData.Name,
+			&driver.ToCityData.CreatedAt,
 			&driver.CreatedAt,
 		); err != nil {
-			fmt.Println("error while scanning row", err.Error())
+			log.Println("error while scanning row:", err)
 			return models.DriversResponse{}, err
 		}
-
+	
 		drivers = append(drivers, driver)
 	}
 

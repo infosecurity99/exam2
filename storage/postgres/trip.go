@@ -44,7 +44,7 @@ func (c *tripRepo) Create(req models.CreateTrip) (string, error) {
 }
 
 //getbyidtrip
-func (c tripRepo) Get(id string) (models.Trip, error) {
+func (c tripRepo) Get(id models.PrimaryKey) (models.Trip, error) {
 	trip := models.Trip{}
 
 	query := `
@@ -52,7 +52,7 @@ func (c tripRepo) Get(id string) (models.Trip, error) {
         WHERE id = $1
     `
 
-	if err := c.db.QueryRow(query, id).Scan(
+	if err := c.db.QueryRow(query, id.ID).Scan(
 		&trip.ID,
 		&trip.TripNumberID,
 		&trip.FromCityID,
@@ -126,7 +126,7 @@ func (c tripRepo) GetList(req models.GetListRequest) (models.TripsResponse, erro
 }
 
 //updatetrip
-func (c *tripRepo) Update(req models.Trip) (string, error) {
+func (c tripRepo) Update(req models.Trip) (string, error) {
 	query := `
         UPDATE trips 
         SET trip_number_id = $1, 
@@ -148,12 +148,12 @@ func (c *tripRepo) Update(req models.Trip) (string, error) {
 }
 
 //delete trip
-func (c tripRepo) Delete(id string) error {
+func (c tripRepo) Delete(id models.PrimaryKey) error {
 	query := `
-        delete fromtrips
+        delete from trips
         WHERE id = $1
     `
-	if _, err := c.db.Exec(query, models.PrimaryKey{ID: id}.ID); err != nil {
+	if _, err := c.db.Exec(query, id.ID); err != nil {
 		fmt.Println("error while deleting trip by id", err.Error())
 		return err
 	}

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"exam2/api/models"
-	"exam2/check"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -30,33 +29,28 @@ func (h Handler) City(w http.ResponseWriter, r *http.Request) {
 
 //create  city
 func (h Handler) CreateCity(w http.ResponseWriter, r *http.Request) {
-	newsCity := models.CreateCity{}
+	createCity := models.CreateCity{}
 
-	if err := json.NewDecoder(r.Body).Decode(&newsCity); err != nil {
-		handleResponse(w, http.StatusBadRequest, err.Error())
+	if err := json.NewDecoder(r.Body).Decode(&createCity); err != nil {
+		handleResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
-	if check.NameCity(newsCity) {
-		fmt.Println("Invalid name length")
-		handleResponse(w, http.StatusBadRequest, "Invalid name length")
-		return
-	}
-
-	cityID, err := h.storage.City().Create(newsCity)
+	pKey, err := h.storage.City().Create(createCity)
 	if err != nil {
-		handleResponse(w, http.StatusInternalServerError, err.Error())
+		handleResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	fmt.Printf("Received data: %+v\n", cityID) 
 
-	createdCity, err := h.storage.City().Get(models.PrimaryKey{ID: cityID})
+	city, err := h.storage.City().Get(models.PrimaryKey{
+		ID: pKey,
+	})
 	if err != nil {
-		handleResponse(w, http.StatusInternalServerError, err.Error())
+		handleResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	handleResponse(w, http.StatusCreated, createdCity)
+	handleResponse(w, http.StatusCreated, city)
 }
 
 //getcitybyid

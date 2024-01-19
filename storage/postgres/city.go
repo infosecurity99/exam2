@@ -5,6 +5,7 @@ import (
 	"exam2/api/models"
 	"exam2/storage"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,31 +16,24 @@ type cityRepo struct {
 }
 
 func NewCityRepo(db *sql.DB) storage.ICityRepo {
-	return cityRepo{
-		db,
+	return &cityRepo{
+		db: db,
 	}
 }
 
 //  create city
-func (c cityRepo) Create(city models.CreateCity) (string, error) {
-
-	uid := uuid.New()
-	createat := time.Now()
-
-	if _, err := c.db.Exec(`insert into cities values ($1, $2, $3)`,
-		uid,
-		city.Name,
-		createat,
-	); err != nil {
-		fmt.Println("error while inserting data", err.Error())
+func (c *cityRepo) Create(city models.CreateCity) (string, error) {
+	id := uuid.New()
+	createdAt := time.Now()
+	if _, err := c.db.Exec(`INSERT INTO cities VALUES ($1, $2, $3)`, id, city.Name, createdAt); err != nil {
+		log.Println("error while inserting data", err.Error())
 		return "", err
 	}
-
-	return uid.String(), nil
+	return id.String(), nil
 }
 
 //getbyidcity
-func (c cityRepo) Get(pKey models.PrimaryKey) (models.City, error) {
+func (c *cityRepo) Get(pKey models.PrimaryKey) (models.City, error) {
 	user := models.City{}
 
 	query := `
@@ -58,7 +52,7 @@ func (c cityRepo) Get(pKey models.PrimaryKey) (models.City, error) {
 }
 
 //getlistcity
-func (c cityRepo) GetList(req models.GetListRequest) (models.CitiesResponse, error) {
+func (c *cityRepo) GetList(req models.GetListRequest) (models.CitiesResponse, error) {
 	var (
 		cities            = []models.City{}
 		count             = 0
@@ -112,7 +106,7 @@ func (c cityRepo) GetList(req models.GetListRequest) (models.CitiesResponse, err
 }
 
 //updatecity
-func (c cityRepo) Update(citykey models.City) (string, error) {
+func (c *cityRepo) Update(citykey models.City) (string, error) {
 	query := `
         UPDATE cities 
         SET name = $1, created_at = $2
@@ -129,7 +123,7 @@ func (c cityRepo) Update(citykey models.City) (string, error) {
 }
 
 //delete   city
-func (c cityRepo) Delete(pKey models.PrimaryKey) error {
+func (c *cityRepo) Delete(pKey models.PrimaryKey) error {
 	query := `
 		delete from cities
 			where id = $1
